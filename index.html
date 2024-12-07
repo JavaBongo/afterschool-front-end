@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>After School Activities</title>
+  <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+  <script src="https://kit.fontawesome.com/a076d05399.js"></script> <!-- Font Awesome -->
+  <style>
+    /* General styling */
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f1f3f3;
+    }
+
+    nav {
+      background-color: #6e7071;
+      padding: 1em;
+      display: flex;
+      align-items: center;
+    }
+
+    nav img {
+      height: 50px;
+      margin-right: 15px;
+    }
+
+    nav div {
+      flex-grow: 1;
+    }
+
+    nav button {
+      background: #ffffff;
+      border: none;
+      padding: 0.5em 1em;
+      cursor: pointer;
+      border-radius: 5px;
+      margin-left: 10px;
+    }
+
+    .card-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1em;
+      padding: 1em;
+    }
+
+    .card {
+      background-color: #ffffff;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      padding: 1em;
+      text-align: center;
+    }
+
+    .card img {
+      margin-bottom: 1em;
+      width: 100px;
+      height: auto;
+    }
+
+    .sorting-options {
+      padding: 1em;
+      background-color: #ffffff;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      margin: 1em;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .search-bar {
+      margin-bottom: 1em;
+    }
+
+    .search-bar input {
+      width: 100%;
+      padding: 0.5em;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+    }
+
+    .sort-options {
+      display: flex;
+      justify-content: space-between;
+    }
+
+    button {
+      background-color: #28a745;
+      color: #150202;
+      border: none;
+      padding: 0.5em 1em;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #218838;
+    }
+
+    .rating {
+      margin-top: 0.5em;
+      font-size: 1.2em;
+      color: #f4c150;
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+  <!-- Navigation between sections -->
+  <nav>
+    <img src="mind bloom academy.jpg" alt="Mind Bloom Academy Logo" />
+    <div></div> <!-- Spacer to push buttons to the right -->
+    <button @click="currentView = 'courses'">Courses</button>
+    <button v-if="cart.length > 0" @click="currentView = 'cart'">Cart ({{ cart.length }})</button>
+    <button @click="currentView = 'checkout'" v-if="cart.length > 0">Checkout</button>
+  </nav>
+
+  <!-- Courses Section -->
+  <div v-if="currentView === 'courses'">
+    <div class="sorting-options">
+      <div class="search-bar">
+        <input type="text" v-model="searchQuery" placeholder="Search by subject" />
+      </div>
+
+      <div class="sort-options">
+        <div>
+          <label for="sortKey">Sort by</label>
+          <select v-model="sortKey" id="sortKey">
+            <option value="subject">Subject</option>
+            <option value="location">Location</option>
+            <option value="price">Price</option>
+            <option value="spaces">Availability</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="sortOrder">Order</label>
+          <select v-model="sortOrder" id="sortOrder">
+            <option value="asc">Ascending</option>
+            <option value="desc">Descending</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Course Cards -->
+    <div class="card-container">
+      <div class="card" v-for="course in filteredCourses" :key="course.subject">
+        <img :src="course.image || 'images/placeholder.jpg'" :alt="course.subject + ' Icon'" />
+        <h3>Subject: {{ course.subject }}</h3>
+        <p>Location: {{ course.location }}</p>
+        <p>Price: £{{ course.price }}</p>
+        <p>Spaces: {{ course.spaces }}</p>
+        <div class="rating">
+          <span v-for="n in Math.floor(course.rating)">★</span>
+          <span v-for="n in 5 - Math.floor(course.rating)">☆</span>
+        </div>
+        <button @click="addToCart(course)">Add to cart <i class="fas fa-cart-plus"></i></button>
+      </div>
+      <p v-if="filteredCourses.length === 0">No courses found for "{{ searchQuery }}"</p>
+    </div>
+  </div>
+
+  <!-- Cart Section (Only visible if cart has items) -->
+  <div v-if="currentView === 'cart' && cart.length > 0">
+    <h2>Your Cart</h2>
+    <ul>
+      <li v-for="(item, index) in cart" :key="item.subject">
+        {{ item.subject }} - Location: {{ item.location }} - Price: £{{ item.price }}
+        <button @click="removeFromCart(index)">Remove</button>
+      </li>
+    </ul>
+    <button @click="currentView = 'checkout'">Proceed to Checkout</button>
+  </div>
+
+  <!-- Checkout Section -->
+  <div v-if="currentView === 'checkout' && cart.length > 0">
+    <h2>Checkout</h2>
+    <ul>
+      <li v-for="item in cart" :key="item.subject">
+        {{ item.subject }} - Location: {{ item.location }} - Price: £{{ item.price }}
+      </li>
+    </ul>
+    <form @submit.prevent="submitCheckout">
+      <label for="name">Name:</label><br>
+      <input type="text" id="name" v-model="checkoutForm.name" required /><br /><br />
+      <label for="phone">Phone Number:</label><br />
+      <input type="text" id="phone" v-model="checkoutForm.phone" required /><br /><br />
+      <button type="submit">Checkout</button>
+    </form>
+  </div>
+
+  <!-- Confirmation Page -->
+  <div v-if="currentView === 'confirmation'">
+    <h2>Order Confirmation</h2>
+    <p>Thank you, {{ checkoutForm.name }}! Your order has been placed.</p>
+  </div>
+</div>
+
+<script>
+new Vue({
+  el: '#app',
+  data: {
+    currentView: 'courses',
+    sortKey: 'price',
+    sortOrder: 'asc',
+    searchQuery: '',
+    cart: [],
+    checkoutForm: {
+      name: '',
+      phone: ''
+    },
+    courses: [
+      { subject: 'Painting and Drawing', location: 'Oxford', price: 100, spaces: 10, image: 'images/painting.jpg', rating: 3.75 },
+      { subject: 'Yoga and Pilates', location: 'Oxford', price: 100, spaces: 10, image: 'images/yoga.jpg', rating: 3.75 },
+      { subject: 'Sculpting', location: 'York', price: 80, spaces: 10, image: 'images/sculpting.jpg', rating: 4.75 },
+      { subject: 'Crafting', location: 'Bristol', price: 90, spaces: 10, image: 'images/crafting.jpg', rating: 4.75 },
+      { subject: 'Photography', location: 'Manchester', price: 40, spaces: 10, image: 'images/photography.jpg', rating: 2.75 },
+      { subject: 'Fashion Design', location: 'Macclesfield', price: 50, spaces: 10, image: 'images/fashion design.jpg', rating: 2.75 },
+      { subject: 'Football', location: 'Manchester', price: 40, spaces: 10, image: 'images/football.jpg', rating: 3.50 },
+      { subject: 'Basketball', location: 'London', price: 40, spaces: 10, image: 'images/basketball.jpg', rating: 3.50 },
+      { subject: 'Tennis', location: 'London', price: 30, spaces: 10, image: 'images/tennis.jpg', rating: 3.0 },
+      { subject: 'Badminton', location: 'Middlesbrough', price: 30, spaces: 10, image: 'images/Badminton.jpg', rating: 2.50 },
+      { subject: 'Rugby', location: 'Macclesfield', price: 60, spaces: 10, image: 'images/rugby.jpg', rating: 3.50 }
+    ]
+  },
+  computed: {
+    filteredCourses() {
+      return this.sortedCourses.filter(course => course.subject.toLowerCase().includes(this.searchQuery.toLowerCase()));
+    },
+    sortedCourses() {
+      let sorted = this.courses.slice();
+      if (this.sortKey) {
+        sorted.sort((a, b) => this.sortOrder === 'asc' ? (a[this.sortKey] > b[this.sortKey] ? 1 : -1) : (a[this.sortKey] < b[this.sortKey] ? 1 : -1));
+      }
+      return sorted;
+    }
+  },
+  methods: {
+    addToCart(course) {
+      if (course.spaces > 0) {
+        this.cart.push(course);
+        course.spaces--;
+      } else {
+        alert('No more spaces available for this course.');
+      }
+    },
+    removeFromCart(index) {
+      const course = this.cart[index];
+      course.spaces++;
+      this.cart.splice(index, 1);
+    },
+    submitCheckout() {
+      this.currentView = 'confirmation';
+    }
+  }
+});
+</script>
+</body>
+</html>
