@@ -9,6 +9,6 @@ let products = [
     { subject: 'Football', location: 'Manchester', price: 40, spaces: 10, image: 'images/football.jpg', rating: 3.50 },
     { subject: 'Basketball', location: 'London', price: 40, spaces: 10, image: 'images/basketball.jpg', rating: 3.50 },
     { subject: 'Tennis', location: 'London', price: 30, spaces: 10, image: 'images/tennis.jpg', rating: 3.0 },
-    { subject: 'Badminton', location: 'Middlesbrough', price: 30, spaces: 10, image: 'images/Badminton.jpg', rating: 2.50 },
+    { subject: 'Badminton', location: 'Middlesbrough', price: 30, spaces: 10, image: 'images/badminton.jpg', rating: 2.50 },
     { subject: 'Rugby', location: 'Macclesfield', price: 60, spaces: 10, image: 'images/rugby.jpg', rating: 3.50 }
 ];
