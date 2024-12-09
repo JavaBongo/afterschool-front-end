@@ -215,18 +215,21 @@ new Vue({
       phone: ''
     },
     courses: [
-      { subject: 'Painting and Drawing', location: 'Oxford', price: 100, spaces: 10, image: 'images/painting.jpg', rating: 3.75 },
-      { subject: 'Yoga and Pilates', location: 'Oxford', price: 100, spaces: 10, image: 'images/yoga.jpg', rating: 3.75 },
-      { subject: 'Sculpting', location: 'York', price: 80, spaces: 10, image: 'images/sculpting.jpg', rating: 4.75 },
-      { subject: 'Crafting', location: 'Bristol', price: 90, spaces: 10, image: 'images/crafting.jpg', rating: 4.75 },
-      { subject: 'Photography', location: 'Manchester', price: 40, spaces: 10, image: 'images/photography.jpg', rating: 2.75 },
-      { subject: 'Fashion Design', location: 'Macclesfield', price: 50, spaces: 10, image: 'images/fashion design.jpg', rating: 2.75 },
-      { subject: 'Football', location: 'Manchester', price: 40, spaces: 10, image: 'images/football.jpg', rating: 3.50 },
-      { subject: 'Basketball', location: 'London', price: 40, spaces: 10, image: 'images/basketball.jpg', rating: 3.50 },
-      { subject: 'Tennis', location: 'London', price: 30, spaces: 10, image: 'images/tennis.jpg', rating: 3.0 },
-      { subject: 'Badminton', location: 'Middlesbrough', price: 30, spaces: 10, image: 'images/badminton.jpg', rating: 2.50 },
-      { subject: 'Rugby', location: 'Macclesfield', price: 60, spaces: 10, image: 'images/rugby.jpg', rating: 3.50 }
+      // { subject: 'Painting and Drawing', location: 'Oxford', price: 100, spaces: 10, image: 'images/painting.jpg', rating: 3.75 },
+      // { subject: 'Yoga and Pilates', location: 'Oxford', price: 100, spaces: 10, image: 'images/yoga.jpg', rating: 3.75 },
+      // { subject: 'Sculpting', location: 'York', price: 80, spaces: 10, image: 'images/sculpting.jpg', rating: 4.75 },
+      // { subject: 'Crafting', location: 'Bristol', price: 90, spaces: 10, image: 'images/crafting.jpg', rating: 4.75 },
+      // { subject: 'Photography', location: 'Manchester', price: 40, spaces: 10, image: 'images/photography.jpg', rating: 2.75 },
+      // { subject: 'Fashion Design', location: 'Macclesfield', price: 50, spaces: 10, image: 'images/fashion design.jpg', rating: 2.75 },
+      // { subject: 'Football', location: 'Manchester', price: 40, spaces: 10, image: 'images/football.jpg', rating: 3.50 },
+      // { subject: 'Basketball', location: 'London', price: 40, spaces: 10, image: 'images/basketball.jpg', rating: 3.50 },
+      // { subject: 'Tennis', location: 'London', price: 30, spaces: 10, image: 'images/tennis.jpg', rating: 3.0 },
+      // { subject: 'Badminton', location: 'Middlesbrough', price: 30, spaces: 10, image: 'images/badminton.jpg', rating: 2.50 },
+      // { subject: 'Rugby', location: 'Macclesfield', price: 60, spaces: 10, image: 'images/rugby.jpg', rating: 3.50 }
     ]
+  },
+  created() {
+    this.fetchGet();
   },
   computed: {
     filteredCourses() {
@@ -256,8 +259,56 @@ new Vue({
     },
     submitCheckout() {
       this.currentView = 'confirmation';
-    }
-  }
+    },
+    fetchGet() {
+      fetch('https://afterschool-activities-backend-r1dt.onrender.com/collection/courses', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            })
+                .then((response) => response.json())
+                .then((data) => {
+                    this.courses = data;
+                })
+                .catch((error) => {
+                    alert(error.message);
+                });
+    },
+    fetchPost() {
+      fetch('https://afterschool-activities-backend-r1dt.onrender.com/collection/orders', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(this.checkoutForm),
+            })
+                .then((response) => response.json())
+                .then((data) => {})
+                .catch((error) => {
+                   alert(error.message);
+                });
+    },
+    fetchPut() {
+      this.cart.array.forEach(item => {
+        const newSpaces = { spaces: item.spaces}
+        fetch(`https://afterschool-activities-backend-r1dt.onrender.com/collection/courses/${item.id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(newSpaces),
+            })
+                .then((response) => response.json())
+                .then((data) => {
+                    this.currentView = 'courses'
+                })
+                .catch((error) => {
+                  alert(error.message);
+                });
+      });
+    },
+  },
 });
 </script>
 </body>
